@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algorithm</title>
+  <link rel="stylesheet" href="../styles/buttons.css">
+  <style>
+    #chart_div {
+      width: 100%;
+      height: 500px;
+    }
+    input, button {
+      display: block;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body bgcolor="#ffebcd">
+<body>
+
+<!-- Додамо поля введення даних -->
+<label for="criticalPathLength">Довжина критичного шляху:</label>
+<input type="number" id="criticalPathLength" value="14">
+
+<label for="totalResourceNeeds">Потреба у ресурсах повна:</label>
+<input type="number" id="totalResourceNeeds" value="100">
+
+<label for="criticalPathResourceNeeds">Потреба ресурсів на критичному шляху:</label>
+<input type="number" id="criticalPathResourceNeeds" value="44">
+
+<label for="nonCriticalResourceNeeds">Потреба ресурсів на некритичних роботах:</label>
+<input type="number" id="nonCriticalResourceNeeds" value="56">
+
+<label for="startDate">Призначити дату початку комплексу:</label>
+<input type="text" id="startDate" value="01.01.2023">
+
+<!-- Додамо кнопки -->
+<button class="buttons" onclick="calculateProject()">Розрахувати тривалість проекту</button>
+<button class="buttons" onclick="drawChart()">Побудувати діаграму Ганта</button>
+
+<!-- Місце для виведення результату -->
+<p id="result"></p>
+
+<!-- Місце для виведення комплексу робіт -->
+<div id="tasks"></div>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['gantt']});
+  google.charts.setOnLoadCallback(drawChart);
+
+  function calculateProject() {
+    // Отримуємо значення з полів введення
+    const criticalPathLength = parseInt(document.getElementById('criticalPathLength').value);
+    const totalResourceNeeds = parseInt(document.getElementById('totalResourceNeeds').value);
+    const criticalPathResourceNeeds = parseInt(document.getElementById('criticalPathResourceNeeds').value);
+    const nonCriticalResourceNeeds = parseInt(document.getElementById('nonCriticalResourceNeeds').value);
+    const startDate = document.getElementById('startDate').value;
+
+    // Розрахунок тривалості проекту
+    const projectDuration = criticalPathLength + (totalResourceNeeds - criticalPathResourceNeeds) / nonCriticalResourceNeeds;
+
+    // Розрахунок резерву часу
+    const timeReserve = projectDuration - criticalPathLength;
+
+    // Вивід результату на сторінку
+    document.getElementById('result').textContent = "Тривалість проекту: " + projectDuration + ", Резерв часу: " + timeReserve;
+
+    // Зберігаємо значення для подальшого використання при побудові діаграми Ганта
+    window.projectData = {
+      criticalPathLength,
+      totalResourceNeeds,
+      criticalPathResourceNeeds,
+      nonCriticalResourceNeeds,
+      startDate,
+      projectDuration,
+      timeReserve
+    };
+
+    // Створюємо завдання на основі введених даних
+    const tasks = [
+      {name: 'Організаційна робота', start: 0, end: projectData.criticalPathLength * 0.1},
+      {name: 'Реєстрація підприємства', start: projectData.criticalPathLength * 0.1, end: projectData.criticalPathLength * 0.2},
+      {name: 'Підготовка приміщення', start: projectData.criticalPathLength * 0.2, end: projectData.criticalPathLength * 0.5},
+      {name: 'Оплата обладнання', start: projectData.criticalPathLength * 0.5, end: projectData.criticalPathLength * 0.6},
+      {name: 'Придбання інвентарю', start: projectData.criticalPathLength * 0.6, end: projectData.criticalPathLength * 0.8},
+      {name: 'Монтаж обладнання', start: projectData.criticalPathLength * 0.8, end: projectData.criticalPathLength * 0.9},
+      {name: 'Проведення маркетингових комунікацій', start: projectData.criticalPathLength * 0.9, end: projectData.criticalPathLength}
+    ];
+
+    // Вивід комплексу робіт на сторінку
+    let tasksDiv = document.getElementById('tasks');
+    tasksDiv.innerHTML = '';
+    tasks.forEach((task, index) => {
+      let taskDiv = document.createElement('div');
+      taskDiv.textContent = `Завдання ${index + 1}: ${task.name}, початок: ${task.start}, кінець: ${task.end}`;
+      tasksDiv.appendChild(taskDiv);
+    });
+  }
+
+  function drawChart() {
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Task ID');
+    data.addColumn('string', 'Task Name');
+    data.addColumn('date', 'Start Date');
+    data.addColumn('date', 'End Date');
+    data.addColumn('number', 'Duration');
+    data.addColumn('number', 'Percent Complete');
+    data.addColumn('string', 'Dependencies');
+
+    // Отримуємо дані з збережених даних
+    const projectData = window.projectData;
+
+    // Створюємо завдання на основі введених даних
+    const tasks = [
+      {name: 'Організаційна робота', start: 0, end: projectData.criticalPathLength * 0.1} ,
+      {name: 'Реєстрація підприємства', start: projectData.criticalPathLength * 0.1, end: projectData.criticalPathLength * 0.2},
+      {name: 'Підготовка приміщення', start: projectData.criticalPathLength * 0.2, end: projectData.criticalPathLength * 0.5},
+      {name: 'Оплата обладнання', start: projectData.criticalPathLength * 0.5, end: projectData.criticalPathLength * 0.6},
+      {name: 'Придбання інвентарю', start: projectData.criticalPathLength * 0.6, end: projectData.criticalPathLength * 0.8},
+      {name: 'Монтаж обладнання', start: projectData.criticalPathLength * 0.8, end: projectData.criticalPathLength * 0.9},
+      {name: 'Проведення маркетингових комунікацій', start: projectData.criticalPathLength * 0.9, end: projectData.criticalPathLength}
+    ];
+
+    // Додаємо завдання до діаграми Ганта
+    tasks.forEach((task, index) => {
+      data.addRows([
+        [`Task ${index}`, task.name, new Date(2023, task.start, 1), new Date(2023, task.end, 1), null, 100, index > 0 ? `Task ${index - 1}` : null]
+      ]);
+    });
+
+    var options = {
+      height: 400,
+      gantt: {
+        trackHeight: 30
+      }
+    };
+
+    var chart = new google.visualization.Gantt(document.getElementById('chart_div'));
+
+    chart.draw(data, options);
+  }
+</script>
+<div id="chart_div"></div>
+</body>
+</html>
